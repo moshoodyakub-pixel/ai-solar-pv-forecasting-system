@@ -41,3 +41,8 @@ Read [Methodology](docs/METHODOLOGY.md), [Data dictionary](docs/DATA_DICTIONARY.
 Audit the measured PV dataset; integrate trustworthy forecasting-time meteorological inputs; add XGBoost and LSTM with fair tuning; extend validation across seasons and sites; improve reproducibility and reporting. These items are **not yet implemented**.
 
 **Author:** Moshood Yakub Olalekan
+
+
+## Experiment 002 — XGBoost and LSTM
+
+Install the optional machine-learning dependencies with `python -m pip install -r requirements-ml.txt`, run `python -m pytest -q`, then start the FastAPI server. Upload the original PV_Data.xlsx and click **Inspect file**, followed by **Run Experiment 002**. Download all held-out forecasts and full model provenance as JSON or CSV. See [the experiment guide](docs/EXPERIMENT_002.md) for the source-unit limitation and reproducible methodology.
