@@ -68,6 +68,29 @@
       </section>
     </div>
     </div>
+
+    <section id="experiment2Panel" class="panel" style="margin-top:24px;">
+      <div class="panel-heading"><div><span class="number">06</span><h2>Experiment 002 · Advanced model comparison</h2></div><span class="panel-note">REPRODUCIBLE EXPORT</span></div>
+      <p class="help">Use the same measured PV dataset to compare Random Forest, XGBoost, LSTM and two persistence baselines. All models receive the preceding 48 measured power values and known target-hour calendar features. No future observed irradiance is used for prediction.</p>
+      <div class="two-fields">
+        <label style="display:flex;align-items:center;gap:10px"><input id="exp2Xgb" type="checkbox" checked style="width:auto;margin:0;min-height:auto"> Include XGBoost</label>
+        <label style="display:flex;align-items:center;gap:10px"><input id="exp2Lstm" type="checkbox" checked style="width:auto;margin:0;min-height:auto"> Include LSTM (PyTorch)</label>
+      </div>
+      <p class="help">Requires <code>python -m pip install -r requirements-ml.txt</code>. The comparison may take longer on Windows. Your source data are processed locally; no file is committed to GitHub.</p>
+      <button id="runExperiment2" class="button-primary" type="button" disabled>Run Experiment 002 <span>↗</span></button>
+    </section>
+    <section id="experiment2Results" class="panel hidden" style="margin-top:20px;">
+      <div class="panel-heading"><div><span class="number">07</span><h2>Experiment 002 results</h2></div><span class="panel-note">FULL HELD-OUT EXPORT</span></div>
+      <div id="exp2Selection" class="winner-strip"></div>
+      <p class="help" id="exp2Summary"></p>
+      <div class="table-scroller" id="exp2Metrics"></div>
+      <h3>Measured vs forecast power — last 240 test hours</h3>
+      <svg id="exp2Chart" viewBox="0 0 960 280" role="img" aria-label="Experiment 002 measured and predicted PV output" style="width:100%;height:auto"></svg>
+      <div class="legend"><span class="legend-actual">Measured</span><span class="legend-pred">Validation-selected model</span></div>
+      <div id="exp2Cautions" class="warnings"></div>
+      <button id="exp2JSON" type="button" class="button-outline">Export full Experiment 002 JSON ↓</button>
+      <button id="exp2CSV" type="button" class="button-outline">Export all test predictions CSV ↓</button>
+    </section>
     <div id="errorBox" role="alert" class="error-box hidden"></div>
     <div id="resultSection" class="results hidden"><div class="panel-heading result-head"><div><span class="number">05</span><h2>Validated results</h2></div><span class="panel-note" id="testWindow">UNSEEN TEST WINDOW</span></div><div id="selectedModel" class="winner-strip"></div><div class="result-grid"><div class="panel"><h3>Measured versus predicted</h3><p class="help" id="chartDescription">The chart is generated only after evaluation. No demonstration values are substituted.</p><svg id="forecastChart" viewBox="0 0 960 295" role="img" aria-label="Test-period measured and predicted power"></svg><div class="legend"><span class="legend-actual">Actual power</span><span class="legend-pred">Selected forecast</span></div></div><div class="panel"><h3>Out-of-sample benchmarks</h3><div class="table-scroller" id="metricTable"></div><div class="line-note">Selected on validation MAE. Test metrics remain an unseen comparison.</div></div></div><div id="warnings" class="warnings"></div><button id="exportBtn" class="button-outline" type="button">Download evaluation JSON ↓</button></div>
     <footer class="footer"><span>AI-DRIVEN SOLAR PV FORECASTING SYSTEM</span><span>MEASURED PV RESEARCH • NOT A LIVE PLANT SCADA</span></footer>

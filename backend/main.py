@@ -48,3 +48,8 @@ async def evaluate_file(file:UploadFile=File(...),timestamp_column:str=Form(...)
                         temp_forecast_column=temp_forecast_column or None)
     except DataError as exc:
         raise HTTPException(status_code=422,detail=str(exc)) from exc
+
+
+# Advanced, auditable Experiment 002 uses an isolated measured-data model pipeline.
+from .experiment2_api import router as experiment2_router
+app.include_router(experiment2_router)

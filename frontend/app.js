@@ -49,7 +49,7 @@ $('inspectBtn').onclick=async()=>{
   const table=document.createElement('table'),head=document.createElement('thead'),row=document.createElement('tr');
   for(const col of data.columns){const cell=document.createElement('th');cell.textContent=col;row.append(cell)}head.append(row);table.append(head);
   const body=document.createElement('tbody');for(const item of data.preview){const tr=document.createElement('tr');for(const col of data.columns){const td=document.createElement('td');td.textContent=safeText(item[col]);tr.append(td)}body.append(tr)}table.append(body);
-  $('previewTable').replaceChildren(table);$('previewBox').classList.remove('hidden');$('evaluateBtn').disabled=false;
+  $('previewTable').replaceChildren(table);$('previewBox').classList.remove('hidden');$('evaluateBtn').disabled=false;$('runExperiment2').disabled=data.dataset_type!=='zenodo_orientation';
   }catch(err){error(err.message)}finally{btn.disabled=false;btn.textContent='Inspect file →'}
 };
 $('evaluateBtn').onclick=async()=>{
@@ -89,3 +89,105 @@ function drawChart(rows,a,b,relative=false){const svg=$('forecastChart');svg.rep
 $('exportBtn').onclick=()=>{if(!report)return;const json=JSON.stringify(report,null,2);const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pv_chronological_evaluation.json';a.click();URL.revokeObjectURL(url)};
 $('openMap').onclick=()=>{const lat=num('latitude'),lon=num('longitude');if(lat===null||lon===null||lat < -90||lat>90||lon < -180||lon>180){error('Enter a valid latitude (-90 to 90) and longitude (-180 to 180).');return}clearError();window.open(`https://www.openstreetmap.org/?mlat=${encodeURIComponent(lat)}&mlon=${encodeURIComponent(lon)}#map=12/${lat}/${lon}`,'_blank','noopener,noreferrer')};
 fetch('/api/health').then(x=>x.json()).then(x=>{$('apiStatus').textContent=x.status==='ok'?'Forecast engine ready':'Engine unavailable';}).catch(()=>{$('apiStatus').textContent='Engine unavailable'});
+
+
+// EXP-002: advanced model comparison and complete audit exports
+
+let exp2Report=null;
+function exp2Esc(s){return String(s===null||s===undefined?'—':s);}
+function exp2Download(content, name, type){
+  const objectURL=URL.createObjectURL(new Blob([content],{type}));
+  const a=document.createElement('a');a.href=objectURL;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectURL),1500);
+}
+function exp2Metrics(report){
+  const names=report.ranking_validation;
+  const cols=['Model','Validation MAE','Test MAE','Test RMSE','Test R²','Generating-hour MAE'];
+  const table=document.createElement('table');const thead=document.createElement('thead');
+  let row=document.createElement('tr');
+  for(const text of cols){const th=document.createElement('th');th.textContent=text;row.append(th)}
+  thead.append(row);table.append(thead);
+  const body=document.createElement('tbody');
+  for(const name of names){
+    const val=report.scores[name].validation,test=report.scores[name].test;
+    const daylight=report.scores[name].test_generating_hours;
+    const values=[name.replaceAll('_',' '),val.mae,test.mae,test.rmse,test.r2,daylight.mae];
+    row=document.createElement('tr');
+    for(const value of values){const cell=document.createElement('td');cell.textContent=exp2Esc(value);row.append(cell)}
+    body.append(row);
+  }
+  table.append(body);$('exp2Metrics').replaceChildren(table);
+}
+function exp2Draw(rows,model){
+  const svg=$('exp2Chart'),ns='http://www.w3.org/2000/svg';
+  svg.replaceChildren();
+  if(rows.length<2)return;
+  const w=960,h=280,l=48,r=14,t=20,b=34;
+  const hi=Math.max(1,...rows.flatMap(row=>[row.actual,row.forecasts[model]]))*1.07;
+  const X=i=>l+(w-l-r)*i/(rows.length-1),Y=v=>t+(h-t-b)*(1-v/hi);
+  function el(kind,attrs,content){const node=document.createElementNS(ns,kind);
+    for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));
+    if(content!==undefined)node.textContent=String(content);svg.append(node);}
+  for(let z=0;z<=4;z++){let val=hi*z/4,yy=Y(val);
+    el('line',{x1:l,y1:yy,x2:w-r,y2:yy,stroke:'#e6eae4','stroke-width':1});
+    el('text',{x:7,y:yy+4,fill:'#758681','font-size':11},val.toFixed(0));}
+  for(const [get,color] of [[v=>v.actual,'#21777d'],[v=>v.forecasts[model],'#c7813d']]){
+    const points=rows.map((row,i)=>X(i).toFixed(2)+','+Y(get(row)).toFixed(2)).join(' ');
+    el('polyline',{points,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round'});}
+  for(const idx of [0,Math.floor((rows.length-1)/2),rows.length-1]){
+    const value=rows[idx];el('text',{x:X(idx),y:h-10,
+      'text-anchor':idx===0?'start':idx===rows.length-1?'end':'middle',
+      'font-size':11,fill:'#758681'},'D'+value.day+' H'+String(value.hour).padStart(2,'0'));}
+  el('text',{x:6,y:10,fill:'#758681','font-size':11},'Source unit');
+}
+function exp2Render(r){
+  exp2Report=r;
+  $('experiment2Results').classList.remove('hidden');
+  $('exp2Selection').textContent='Validation-selected: '+r.selected_model.replaceAll('_',' ')
+    +' · '+r.data_quality.test_rows+' unseen test hours';
+  $('exp2Summary').textContent='Experiment '+r.experiment_id+' · '
+    +r.data_quality.train_rows+' training, '+r.data_quality.validation_rows
+    +' validation, '+r.data_quality.test_rows+' test samples. '
+    +'Metrics are in original source units (W/Wh unresolved), not kW.';
+  exp2Metrics(r);
+  exp2Draw(r.predictions.slice(-240),r.selected_model);
+  $('exp2Cautions').replaceChildren(...r.warnings.map(message=>{
+    const line=document.createElement('p');line.textContent='· '+message;return line;}));
+  $('experiment2Results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('runExperiment2').addEventListener('click',async()=>{
+  clearError();
+  if(!currentFile||previewData?.dataset_type!=='zenodo_orientation'){
+    error('Inspect the original PV_Data.xlsx orientation workbook first.');return;
+  }
+  const button=$('runExperiment2');
+  button.disabled=true;button.textContent='Training models and exporting all test predictions…';
+  try{
+    const form=new FormData();form.append('file',currentFile);
+    form.append('power_column',$('powerCol').value);
+    form.append('include_xgboost',$('exp2Xgb').checked?'true':'false');
+    form.append('include_lstm',$('exp2Lstm').checked?'true':'false');
+    const response=await callApi('/api/experiment2',form);
+    exp2Render(response);
+  }catch(err){error(err.message)}finally{
+    button.disabled=false;button.innerHTML='Run Experiment 002 <span>↗</span>';
+  }
+});
+$('exp2JSON').addEventListener('click',()=>{
+  if(!exp2Report)return;
+  exp2Download(JSON.stringify(exp2Report,null,2),'EXP-002_full_evaluation.json','application/json');
+});
+$('exp2CSV').addEventListener('click',()=>{
+  if(!exp2Report)return;
+  const models=Object.keys(exp2Report.scores);
+  const header=['relative_hour_index','day','hour','actual_source_unit','generating_hour_ex_post',...models];
+  const lines=[header.join(',')];
+  for(const p of exp2Report.predictions){
+    lines.push([p.relative_hour_index,p.day,p.hour,p.actual,p.generating_hour_ex_post,
+       ...models.map(m=>p.forecasts[m])].join(','));
+  }
+  exp2Download(lines.join('\n')+'\n','EXP-002_all_test_predictions.csv','text/csv');
+});
+
+$('datasetFile').addEventListener('change',()=>{ $('runExperiment2').disabled=true; $('experiment2Results').classList.add('hidden'); exp2Report=null; });
