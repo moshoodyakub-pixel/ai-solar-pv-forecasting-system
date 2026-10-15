@@ -46,3 +46,8 @@ Audit the measured PV dataset; integrate trustworthy forecasting-time meteorolog
 ## Experiment 002 — XGBoost and LSTM
 
 Install the optional machine-learning dependencies with `python -m pip install -r requirements-ml.txt`, run `python -m pytest -q`, then start the FastAPI server. Upload the original PV_Data.xlsx and click **Inspect file**, followed by **Run Experiment 002**. Download all held-out forecasts and full model provenance as JSON or CSV. See [the experiment guide](docs/EXPERIMENT_002.md) for the source-unit limitation and reproducible methodology.
+
+
+## Experiment 003 — Rolling-origin stability
+
+The dashboard includes **Experiment 003**, which performs expanding-window model validation over the earliest 85% development portion of the source dataset. It compares five methods across disjoint validation folds and reports generating-hour and high-ramp errors. Download every validation prediction as JSON or CSV. **No previously inspected final test rows are evaluated.** See [Experiment 003 methodology](docs/EXPERIMENT_003.md).
