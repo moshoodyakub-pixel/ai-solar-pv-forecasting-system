@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from .forecasting.ingestion import read_table, preview, DataError
 from .forecasting.evaluation import evaluate
+from .forecasting.orientation import is_orientation_dataset, evaluate_orientation
 
 ROOT=Path(__file__).resolve().parents[1]
 app=FastAPI(title='AI Solar PV Forecasting System',version='0.1.0',
@@ -40,6 +41,8 @@ async def evaluate_file(file:UploadFile=File(...),timestamp_column:str=Form(...)
                         poa_forecast_column:str|None=Form(None),temp_forecast_column:str|None=Form(None)):
     frame=await parse(file,header_row)
     try:
+        if is_orientation_dataset(frame):
+            return evaluate_orientation(frame,power_column)
         return evaluate(frame,timestamp_column,power_column,timezone=timezone,capacity_kw=capacity_kw,
                         ac_capacity_kw=ac_capacity_kw,poa_forecast_column=poa_forecast_column or None,
                         temp_forecast_column=temp_forecast_column or None)

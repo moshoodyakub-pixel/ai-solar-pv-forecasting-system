@@ -22,7 +22,21 @@ def read_table(data: bytes, filename: str, header_row: int = 0) -> pd.DataFrame:
         if name.endswith('.csv'):
             frame = pd.read_csv(BytesIO(data), header=header)
         elif name.endswith('.xlsx'):
-            frame = pd.read_excel(BytesIO(data), header=header, engine='openpyxl')
+            # Source-aware import: Zenodo 19245713 stores headers in another sheet.
+            with pd.ExcelFile(BytesIO(data), engine='openpyxl') as book:
+                if {'DATA', 'DATA DESCRIPTION'}.issubset(book.sheet_names):
+                    description = pd.read_excel(book, sheet_name='DATA DESCRIPTION', header=None, nrows=2)
+                    names = description.iloc[1].tolist()
+                    if len(names) == 21 and str(names[0]).strip() == 'Day' and str(names[20]).strip() == 'Total PV Power':
+                        frame = pd.read_excel(book, sheet_name='DATA', header=None)
+                        if frame.shape[1] != 21:
+                            raise DataError('The orientation workbook must have 21 data columns.')
+                        frame.columns = names
+                        frame.attrs['dataset_type'] = 'zenodo_orientation'
+                    else:
+                        raise DataError('DATA DESCRIPTION did not contain the expected variable dictionary.')
+                else:
+                    frame = pd.read_excel(book, header=header)
         else:
             raise DataError('Upload a CSV or XLSX file (not XLS or XLSM).')
     except (ValueError, OSError, ImportError, pd.errors.ParserError) as exc:
@@ -53,7 +67,9 @@ def preview(frame: pd.DataFrame):
     cols=list(frame.columns)
     def matching(words):
         return next((c for c in cols if any(w in c.lower() for w in words)),None)
-    return {'columns':cols,'total_rows':len(frame),'preview':rows,
-            'suggested_timestamp':matching(['timestamp','datetime','date','time']),
-            'suggested_power':matching(['power_kw','pv_power','ac_power','generation','actual_power']),
+    return {'dataset_type':frame.attrs.get('dataset_type','generic'),
+            'original_units_note': 'W or Wh (source ambiguous)' if frame.attrs.get('dataset_type') == 'zenodo_orientation' else 'Confirm actual AC kW',
+            'columns':cols,'total_rows':len(frame),'preview':rows,
+            'suggested_timestamp': '__day_hour__' if frame.attrs.get('dataset_type') == 'zenodo_orientation' else matching(['timestamp','datetime','date','time']),
+            'suggested_power':'Total PV Power' if frame.attrs.get('dataset_type') == 'zenodo_orientation' else matching(['power_kw','pv_power','ac_power','generation','actual_power']),
             'note':'All values are from the uploaded file; this screen contains no model predictions.'}
