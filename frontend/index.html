@@ -7,6 +7,7 @@
   <title>PV Forecast Studio | Verified Research</title>
   <link rel="stylesheet" href="/assets/styles.css" />
   <script src="/assets/app.js" defer></script>
+  <script src="/assets/experiment3.js" defer></script>
 </head>
 <body>
 <div class="app-shell">
@@ -90,6 +91,30 @@
       <div id="exp2Cautions" class="warnings"></div>
       <button id="exp2JSON" type="button" class="button-outline">Export full Experiment 002 JSON ↓</button>
       <button id="exp2CSV" type="button" class="button-outline">Export all test predictions CSV ↓</button>
+    </section>
+
+    <section id="experiment3Panel" class="panel" style="margin-top:25px">
+      <div class="panel-heading"><div><span class="number">08</span><h2>Experiment 003 · Rolling-Origin Validation</h2></div><span class="panel-note">DEVELOPMENT PERIOD ONLY</span></div>
+      <p class="help">Expand the training history across successive validation windows. Compare model stability and morning, midday, evening, and high-ramp errors. No model is evaluated on the previously examined 15% test holdout.</p>
+      <div class="two-fields"><label>Expanding validation folds<select id="exp3Folds"><option value="4" selected>4 folds</option><option value="3">3 folds</option><option value="5">5 folds</option></select></label>
+        <label>Duration per fold<select id="exp3Days"><option value="7">7 days</option><option value="14" selected>14 days</option><option value="21">21 days</option></select></label></div>
+      <div class="two-fields">
+        <label style="display:flex;gap:10px;align-items:center"><input id="exp3Xgb" type="checkbox" checked style="width:auto;margin:0;min-height:auto"> Include XGBoost</label>
+        <label style="display:flex;gap:10px;align-items:center"><input id="exp3Lstm" type="checkbox" checked style="width:auto;margin:0;min-height:auto"> Include LSTM (CPU)</label>
+      </div>
+      <p class="help">Only development-period observations are scored; the prior EXP-002 test results have already been viewed, so fresh independent external data will still be needed for final validation. Source W/Wh units remain unresolved.</p>
+      <button id="exp3Run" class="button-primary" type="button" disabled>Run Experiment 003 <span>↗</span></button>
+      <div id="exp3Error" class="error-box hidden" role="alert"></div>
+    </section>
+    <section id="exp3Results" class="panel hidden" style="margin-top:20px">
+      <div class="panel-heading"><div><span class="number">09</span><h2>Stability and error diagnostics</h2></div><span class="panel-note">EX-POST EVALUATION</span></div>
+      <div id="exp3Winner" class="winner-strip"></div><p id="exp3Summary" class="help"></p>
+      <h3>Pooled expanding-window comparison</h3><div class="table-scroller" id="exp3ModelScores"></div>
+      <h3 style="margin-top:22px">Validation MAE by fold</h3><div class="table-scroller" id="exp3FoldScores"></div>
+      <h3 style="margin-top:22px">Error by recorded hour</h3><div class="table-scroller" id="exp3Periods"></div>
+      <div id="exp3Warnings" class="warnings"></div>
+      <button id="exp3Json" class="button-outline" type="button">Download full validation JSON ↓</button>
+      <button id="exp3Csv" class="button-outline" type="button">Download all validation predictions CSV ↓</button>
     </section>
     <div id="errorBox" role="alert" class="error-box hidden"></div>
     <div id="resultSection" class="results hidden"><div class="panel-heading result-head"><div><span class="number">05</span><h2>Validated results</h2></div><span class="panel-note" id="testWindow">UNSEEN TEST WINDOW</span></div><div id="selectedModel" class="winner-strip"></div><div class="result-grid"><div class="panel"><h3>Measured versus predicted</h3><p class="help" id="chartDescription">The chart is generated only after evaluation. No demonstration values are substituted.</p><svg id="forecastChart" viewBox="0 0 960 295" role="img" aria-label="Test-period measured and predicted power"></svg><div class="legend"><span class="legend-actual">Actual power</span><span class="legend-pred">Selected forecast</span></div></div><div class="panel"><h3>Out-of-sample benchmarks</h3><div class="table-scroller" id="metricTable"></div><div class="line-note">Selected on validation MAE. Test metrics remain an unseen comparison.</div></div></div><div id="warnings" class="warnings"></div><button id="exportBtn" class="button-outline" type="button">Download evaluation JSON ↓</button></div>
