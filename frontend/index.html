@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#13343b" />
+  <title>PV Forecast Studio | Verified Research</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="nav-rail">
+    <div class="identity"><div class="brand-mark">PV<span>/</span></div><div><b>FORECAST<br>STUDIO</b><small>RESEARCH EDITION</small></div></div>
+    <div class="section-label">WORKSPACE</div>
+    <a class="nav-entry active" href="#research"><span class="nav-symbol">01</span> Research workspace</a>
+    <a class="nav-entry" href="#dataset"><span class="nav-symbol">02</span> Dataset registry</a>
+    <a class="nav-entry" href="#evaluation"><span class="nav-symbol">03</span> Model validation</a>
+    <a class="nav-entry" href="#method"><span class="nav-symbol">04</span> Method notes</a>
+    <div class="rail-bottom"><span class="rail-pip"></span><span id="apiStatus">Checking engine</span><small>Version 0.1.0<br>Local research environment</small></div>
+  </aside>
+  <main class="workspace" id="research">
+    <header class="global-header"><div class="eyebrow">MIVA OPEN UNIVERSITY <span class="slash">/</span> SCHOOL OF COMPUTING <span class="slash">/</span> FINAL YEAR PROJECT</div><div class="system-tag">MODEL VALIDATION • STAGE 01</div></header>
+    <div class="heading-area"><div><div class="kicker">MEASURED GENERATION · TIME-SERIES RESEARCH</div><h1>Evidence before predictions.</h1><p class="lede">Train and evaluate solar PV forecasts against real power measurements. Every metric comes from an explicitly held-out time period.</p></div><div class="edition"><strong>2026</strong><span>RESEARCH BUILD<br>01 / 05</span></div></div>
+
+    <section class="hero-band" aria-label="Method overview">
+      <div><span class="band-label">01 / SOURCE</span><strong>Measured PV power</strong><small>CSV / Excel upload</small></div>
+      <span class="band-sep">→</span><div><span class="band-label">02 / HORIZON</span><strong>One hour ahead</strong><small>Observations known at issue time</small></div>
+      <span class="band-sep">→</span><div><span class="band-label">03 / METHOD</span><strong>Chronological split</strong><small>70% / 15% / 15%</small></div>
+      <span class="band-sep">→</span><div><span class="band-label">04 / EVIDENCE</span><strong>Out-of-sample scores</strong><small>MAE · RMSE · R²</small></div>
+    </section>
+
+    <div class="content-columns">
+    <div class="left-stack">
+      <section class="panel" id="dataset">
+        <div class="panel-heading"><div><span class="number">01</span><h2>Research dataset</h2></div><span class="panel-note">LOCAL · NOT UPLOADED TO GITHUB</span></div>
+        <p class="help">Upload actual measured PV power in kW with authentic hourly timestamps. We never fabricate missing measurements.</p>
+        <div class="upload-row"><label class="upload-control"><input id="datasetFile" type="file" accept=".csv,.xlsx" /><span class="upload-symbol">↑</span><span><b>Choose measured dataset</b><small>CSV or XLSX, maximum 25 MB</small></span></label><div class="upload-meta" id="fileMeta">No file selected</div></div>
+        <div class="two-fields"><label>Header row (0-based)<input id="headerRow" type="number" value="0" min="-1" max="100" step="1" /><small>Use -1 if no heading row</small></label><label>Time zone of source readings<input id="timezone" value="UTC" placeholder="UTC or Africa/Lagos" /><small>Naive timestamps are localized to this zone</small></label></div>
+        <button id="inspectBtn" class="button-outline" type="button" disabled>Inspect file →</button>
+        <div id="previewBox" class="preview-box hidden"><div class="readout-title"><span>DETECTED DATA</span><span id="rowCount"></span></div><div id="previewTable" class="table-scroller"></div></div>
+      </section>
+      <section class="panel" id="evaluation">
+        <div class="panel-heading"><div><span class="number">02</span><h2>Evaluation setup</h2></div><span class="panel-note">NO RANDOM SPLITTING</span></div>
+        <div class="two-fields"><label>Measurement timestamp<select id="timestampCol" disabled><option>Inspect a dataset first</option></select></label><label>Measured AC power (kW)<select id="powerCol" disabled><option>Inspect a dataset first</option></select></label></div>
+        <div class="two-fields"><label>PV array rated DC capacity (kWp)<input id="capacity" type="number" min="0.01" step="0.1" placeholder="Optional" /></label><label>Inverter AC capacity (kW)<input id="acCapacity" type="number" min="0.01" step="0.1" placeholder="Optional" /></label></div>
+        <details class="advanced"><summary>Optional: forecast-weather physical baseline</summary><p>Only select weather columns if they were forecasts available at the one-hour-ahead issue time—not observed weather from the target hour.</p><div class="two-fields"><label>Forecast POA irradiance (W/m²)<select id="poaCol" disabled><option>No forecast POA</option></select></label><label>Forecast ambient temperature (°C)<select id="tempCol" disabled><option>No forecast temperature</option></select></label></div></details>
+        <div class="info-foot"><span class="little-dot"></span> The baseline and model predictions are evaluated on the same target timestamps.</div>
+        <button id="evaluateBtn" class="button-primary" type="button" disabled>Run chronological evaluation <span>↗</span></button>
+      </section>
+    </div>
+    <div class="right-stack">
+      <section class="site-card">
+        <div class="site-heading"><span>LOCATION METADATA</span><span class="tiny-icon">↗</span></div>
+        <h2>Site reference</h2><p>Coordinates identify the installation; they do not automatically validate a model trained on another plant.</p>
+        <div class="two-fields small-fields"><label>Latitude<input id="latitude" type="number" min="-90" max="90" step="any" placeholder="e.g. 12.0022" /></label><label>Longitude<input id="longitude" type="number" min="-180" max="180" step="any" placeholder="e.g. 8.5920" /></label></div>
+        <button id="openMap" class="link-button">Open site on OpenStreetMap <span>↗</span></button>
+        <div class="site-caption">NO AUTOMATIC CLAIM OF LOCAL MODEL ACCURACY</div>
+      </section>
+      <section class="panel compact"><div class="panel-heading"><div><span class="number">03</span><h2>Research integrity</h2></div></div>
+        <div class="criteria"><span class="criteria-icon">✓</span><div><b>Measured target data</b><small>We do not replace missing generation with synthetic readings.</small></div></div>
+        <div class="criteria"><span class="criteria-icon">✓</span><div><b>Chronological holdout</b><small>Training never sees future target power.</small></div></div>
+        <div class="criteria"><span class="criteria-icon">✓</span><div><b>Physical comparison guarded</b><small>Enabled only with appropriate forecast-time inputs.</small></div></div>
+      </section>
+      <section class="panel compact" id="method"><div class="panel-heading"><div><span class="number">04</span><h2>Method statement</h2></div></div>
+        <p class="help">Random Forest uses only lagged measured power and known calendar features, plus explicitly archived forecast-weather inputs when complete. The best model is selected using validation MAE, not test-period performance.</p>
+        <div class="mono-tag">REPRODUCIBLE · RANDOM SEED 42</div>
+      </section>
+    </div>
+    </div>
+    <div id="errorBox" role="alert" class="error-box hidden"></div>
+    <div id="resultSection" class="results hidden"><div class="panel-heading result-head"><div><span class="number">05</span><h2>Validated results</h2></div><span class="panel-note" id="testWindow">UNSEEN TEST WINDOW</span></div><div id="selectedModel" class="winner-strip"></div><div class="result-grid"><div class="panel"><h3>Measured versus predicted</h3><p class="help">The chart is generated only after evaluation. No demonstration values are substituted.</p><svg id="forecastChart" viewBox="0 0 960 295" role="img" aria-label="Test-period measured and predicted power"></svg><div class="legend"><span class="legend-actual">Actual power</span><span class="legend-pred">Selected forecast</span></div></div><div class="panel"><h3>Out-of-sample benchmarks</h3><div class="table-scroller" id="metricTable"></div><div class="line-note">Selected on validation MAE. Test metrics remain an unseen comparison.</div></div></div><div id="warnings" class="warnings"></div><button id="exportBtn" class="button-outline" type="button">Download evaluation JSON ↓</button></div>
+    <footer class="footer"><span>AI-DRIVEN SOLAR PV FORECASTING SYSTEM</span><span>MEASURED PV RESEARCH • NOT A LIVE PLANT SCADA</span></footer>
+  </main>
+</div>
+</body>
+</html>
